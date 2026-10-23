@@ -2,7 +2,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class UI {
+    //поля
     static Screen screen = new Screen(100, 25);
+
+    //методы
     static void AssemblyChoseScreen(Rooms rooms[]){
         int ind = 1, x = 16, y = 3;
         for (Rooms room : rooms){
@@ -16,7 +19,7 @@ public class UI {
 
     }
     static void AssemblyFightScreen(ArrayList<Enemy> enemies, Hero hero){
-        int ind = 1;
+        int ind = 1, x = 16, y = 3;
         for (Enemy enemy : enemies){
             String boxText = TextBox.EnemyBox.getUpdatedInfo(Map.of(
                     "ind", ind,
@@ -24,7 +27,8 @@ public class UI {
                     "dmg", enemy.damage)
             );
             ind++;
-
+            screen.place(boxText, x, y);
+            x += 22;
         }
     }
     static void AssemblyFightScreen(Enemy enemy, Hero hero){
@@ -48,6 +52,10 @@ public class UI {
                 "critch", hero.critChance,
                 "dodgech", hero.dodgeChance)
         );
+    }
+    static void AddHeroStatistic(Hero hero){
+        String stats = GetHeroStatistic(hero);
+        screen.place(stats, 0, 0);
     }
     static void ShowScreen(){
         screen.show();
