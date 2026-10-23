@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class UI {
-    static Screen screen = new Screen(100, 50);
+    static Screen screen = new Screen(100, 25);
     static void AssemblyChoseScreen(Rooms rooms[]){
-        int ind = 1, x = 1, y = 3;
+        int ind = 1, x = 16, y = 3;
         for (Rooms room : rooms){
             String boxText = TextBox.DoorBox.getUpdatedInfo(Map.of("ind", ind, "type", room.typeName));
             ind++;

@@ -5,6 +5,15 @@ public class Screen {
     Screen(int width, int height){
         this.width = width; this.height = height;
         StringBuilder screen = new StringBuilder(" ".repeat((width + 1) * height));
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                //вычисление точки для саписи символа
+                int point = y * (width + 1) + x;
+                if(y == 0 || y == height - 1) screen.setCharAt(point, '-');
+                if(x == 0 || x == width - 1) screen.setCharAt(point, '|');
+            }
+        }
+
         for (int i = width; i < screen.length(); i += width + 1) screen.setCharAt(i, '\n');
         this.screenStrBldr = screen;
     }
