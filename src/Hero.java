@@ -26,6 +26,7 @@ class Hero {
 
     void dodge() {
         // что-то делает
+
     }
 
     void changeWeapon(Weapons weapon) {

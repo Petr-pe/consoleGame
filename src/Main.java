@@ -38,39 +38,38 @@ public class Main {
         int count = (int)(Math.random() * 4);
         for (int i = 0; i < count; i++) enemies.add(new Enemy("rnd"));
 
+        //вывод данных
+        UI.AssemblyFightScreen(enemies);
+        UI.AddHeroStatistic(hero);
+        UI.ShowScreen();
+
         //цикл боя
         while(!enemies.isEmpty()){
-            //вывод данных
-            UI.AssemblyFightScreen(enemies, hero);
-            UI.ShowScreen();
-
             //запрос на индекс врага
-            int index = Math.clamp(scanner.nextInt(), 1, enemies.size() + 1);
-            Enemy damageableEnemy = enemies.get(index - 1);
+            int index = Math.clamp(scanner.nextInt(), 1, enemies.size() + 1) - 1;
+            Enemy damageableEnemy = enemies.get(index);
 
             //ход героя
             hero.hit(damageableEnemy);
-            Thread.sleep(1000);
-
-            //вывод данных
-            UI.AssemblyFightScreen(enemies, hero);
-            UI.ShowScreen();
 
             //удаление если умер
             if(enemies.get(index - 1).health <= 0) enemies.remove(index - 1);
 
             //вывод данных
-            UI.AssemblyFightScreen(enemies, hero);
+            UI.AssemblyFightScreen(enemies);
+            UI.AddHeroStatistic(hero);
             UI.ShowScreen();
+            Thread.sleep(1000);
 
             //ход врагов
             for (Enemy enemy : enemies) {
                 enemy.hit(hero);
-                Thread.sleep(1000);
 
                 //вывод данных
-                UI.AssemblyFightScreen(enemies, hero);
+                UI.AssemblyFightScreen(enemies);
+                UI.AddHeroStatistic(hero);
                 UI.ShowScreen();
+                Thread.sleep(1000);
             }
         }
     }
@@ -81,14 +80,16 @@ public class Main {
             Thread.sleep(1000);
 
             //вывод данных
-            UI.AssemblyFightScreen(boss, hero);
+            UI.AssemblyFightScreen(boss);
+            UI.AddHeroStatistic(hero);
             UI.ShowScreen();
 
             boss.hit(hero);
             Thread.sleep(1000);
 
             //вывод данных
-            UI.AssemblyFightScreen(boss, hero);
+            UI.AssemblyFightScreen(boss);
+            UI.AddHeroStatistic(hero);
             UI.ShowScreen();
         }
     }
