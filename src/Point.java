@@ -12,4 +12,7 @@ public class Point {
         x = Math.clamp(x, mnx, mxx);
         y = Math.clamp(y, mny, mxy);
     }
+    Point plus(Point other){
+        return new Point(x + other.x, y + other.y);
+    }
 }

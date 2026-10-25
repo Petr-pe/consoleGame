@@ -13,28 +13,34 @@ public class UI {
 
 
     //методы
-    static Point HorizontalPosNextTextUnit(Point point, String textUnit, int ident){
-        return new Point(point.x + GetTextWidth(textUnit) + ident, point.y);
+    //Вычисляет координаты конца объекта
+    static Point EndOfBox(Point point, String textUnit){
+        return new Point(point.x + GetTextWidth(textUnit), point.y);
     }
+    //даёт количество символов в самой большой подстроке
     static int GetTextWidth(String s) {
         int mx = 0;
         for (String line : s.split("\n"))
             mx = Math.max(mx, line.length());
         return mx;
     }
-    static Unit FindUnit(String name){
+    //находит unit в списке по имени
+    static private Unit FindUnit(String name){
         for (var u : units)
             if(u.name.equals(name))
                 return u;
         return null;
     }
-    static void AddUnit(Unit unit){
+    // добавляет unit на экран и в список
+    static private void AddUnit(Unit unit){
         screen.place(unit);
         units.add(unit);
     }
 
+    //собирают экран
     static void AssemblyFightScreen(ArrayList<Enemy> enemies) {
         NewFrame();
+        screen.place("Выбери индекс врага которого бить", 1,1);
 
         int ind = 0;
         Point p = new Point(listPoint);
@@ -45,7 +51,7 @@ public class UI {
                     "dmg", enemy.damage)
             );
             AddUnit(new Unit("enemy" + ind, boxText, p));
-            p = HorizontalPosNextTextUnit(p, boxText, 1);
+            p = EndOfBox(p, boxText + 1);
             ind++;
         }
     }
@@ -59,8 +65,9 @@ public class UI {
         );
         AddUnit(new Unit("enemy0", box, listPoint));
     }
-    static void AssemblyChoseScreen(Rooms rooms[]) {
+    static void AssemblyChoseScreen(Rooms[] rooms) {
         NewFrame();
+        screen.place("Выберите индекс двери в которую хотите войти (пока что работет только Enemies и Boss)", 1,1);
 
         int ind = 0;
         Point p = new Point(listPoint);
@@ -70,7 +77,7 @@ public class UI {
                     "type", room.typeName)
             );
             AddUnit(new Unit("door" + ind, boxText, p));
-            p = HorizontalPosNextTextUnit(p, boxText, 1);
+            p = EndOfBox(p, boxText + 1);
             ind++;
         }
     }
@@ -81,49 +88,55 @@ public class UI {
 
     }
 
-    static void AddParticleToList(int val, Point pos){
+    //формирует и добавляет партиклы в список
+    static private void AddStatParticleToList(int val, Point pos){
         String text = TextTemplate.StatsParticle.getUpdatedInfo(Map.of(
                 "sign", val > 0 ? '+' : '-',
                 "amo", Math.abs(val)
         ));
         particles.add(new Particle(text, pos));
     }
-
-    // рядом с HP врага (бокс врага: x = 3 + 22*i, y = 3, строка HP = y + 2)
-    static void EnemyHpParticle(int enemyIndex, int delta) {
-
+    //высчитывает куда ставить партикл
+    static void AddStatsChangeParticle(String unitName, String stat, int change, Point offset) {
+        Unit unit = FindUnit(unitName); if(unit == null) return;
+        Point particlePoint = unit.lineEnd(stat).plus(offset);
+        AddStatParticleToList(change, particlePoint);
     }
-    // рядом с HP героя (бокс: x = 1, y = height - 10, строка HP = y + 3)
-    static void HeroHpParticle(int delta) {
-
+    static void AddStatsChangeParticle(String unitName, String stat, int change) {
+        AddStatsChangeParticle(unitName, stat, change, new Point(2,0));
     }
 
+        //выводит статистику героя на экран
     static void AddHeroStatistic(Hero hero){
         String stats = TextTemplate.HeroBox.getUpdatedInfo(Map.of(
                 "money", hero.money,
                 "mhp", hero.maxHealth,
                 "hp", hero.health,
                 "dmg", hero.basicDamage,
-                "weapon", (hero.weapon.getName() + ' ' + String.valueOf(hero.weapon.minDamage) + '-' + String.valueOf(hero.weapon.maxDamage)),
+                "weapon", (hero.weapon.getName() + ' ' + hero.weapon.minDamage + '-' + hero.weapon.maxDamage),
                 "critch", hero.critChance,
                 "dodgech", hero.dodgeChance)
         );
         AddUnit(new Unit("hero", stats, heroStats));
     }
 
+    //очищает все списки
     static void NewFrame(){
         units.clear();
-        particles.clear();
         screen.clear();
     }
+    //показывает экран и выводит партиклы
     static void ShowScreen(){
         //вывод партиклов
         for (var p : particles)
-            screen.place(p.text, p.position.x, p.position.y);
+            screen.place(p.text, p.position);
         //очистка партиклов (не с экрана, а с массива)
         particles.clear();
 
         screen.show();
+        for(var unit : units)
+            System.out.println("Name: " + unit.name + " | X Y: " + unit.position.x + ' ' + unit.position.y + " | Width: " + GetTextWidth(unit.content));
+
     }
 }
 
@@ -142,7 +155,7 @@ class Unit{
         name = n; content = c; position = new Point(pos);
     }
     Point lineEnd(String label){
-        String lines[] = content.split("\n"); //делит строку на множество строк где есть этот вот аргумент
+        String[] lines = content.split("\n"); //делит строку на множество строк, где есть этот вот аргумент
         for (int i = 0; i < lines.length; i++)
             if(lines[i].contains(label))
                 return new Point(position.x + lines[i].length(), position.y + i); // по x конец строки, по y номер строки
@@ -150,7 +163,7 @@ class Unit{
     }
 }
 
-//проосто заготовки
+//просто заготовки
 enum TextTemplate {
     EnemyBox("""
             =====================
@@ -182,7 +195,11 @@ enum TextTemplate {
             """),
     StatsParticle("[sign][amo]");
 
-    private String template; //шаблон
+    private final String template; //шаблон
+
+    String getTemplate(){
+        return template;
+    }
 
     //конструктор
     TextTemplate(String text){
@@ -200,6 +217,6 @@ enum TextTemplate {
 }
 
 //строка 148 попробовать UI.GetTextWidth() строка 19
-//сделать функцию, которая будет по label определять строку, находить её конец (или конец самой длинной строки), и вставлять туда соответсвующий партикл
+//сделать функцию, которая будет  по label определять строку, находить её конец (или конец самой длинной строки), и вставлять туда соответствующий партикл
 //добавить комментарии к функциям
 //
