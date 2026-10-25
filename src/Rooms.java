@@ -7,6 +7,7 @@ enum Rooms {
     public String typeName;
     Rooms(String name) {typeName = name;}
 
+    //даёт случайную комнату
     static Rooms getRand() {
         Rooms rooms[] = Rooms.values();
         return rooms[(int) (Math.random() * rooms.length)];
