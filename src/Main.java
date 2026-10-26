@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -10,18 +11,19 @@ public class Main {
             //выбор
             //комната
             //действие
-            int chosingSize = 3;
+            int choosingSize = 3;
             //создание массива со случайными комнатами
-            Rooms[] rooms = new Rooms[chosingSize];
-            for (int i = 0; i < chosingSize; i++)
+            Rooms[] rooms = new Rooms[choosingSize];
+            for (int i = 0; i < choosingSize; i++)
                 rooms[i] = Rooms.getRand();
 
             //вывод данных
             UI.AssemblyChoseScreen(rooms);
+            UI.AddHeroStatistic(hero);
             UI.ShowScreen();
 
             //выбор комнаты
-            int chose = Math.clamp(scanner.nextInt(), 1, chosingSize + 1) - 1;
+            int chose = Math.clamp(scanner.nextInt(), 1, choosingSize) - 1;
             switch (rooms[chose]){
                 case Enemies -> startBattle(hero);
                 case Boss -> startBossBattle(hero);
@@ -56,8 +58,14 @@ public class Main {
             //добавление партикла
             UI.AddStatsChangeParticle("enemy" + index, "HP",-(lastEnemyHp - damageableEnemy.health));
 
-            //удаление врага если умер
-            if(enemies.get(index).health <= 0) enemies.remove(index);
+            //удаление врага если умер и выдавание денег
+            if(damageableEnemy.health <= 0){
+                //добавление денег
+                hero.money += damageableEnemy.reward;
+                //добавление париткла
+                UI.AddStatsChangeParticle("hero", "Money", damageableEnemy.reward);
+                enemies.remove(index);
+            }
 
             //вывод данных
             UI.AssemblyFightScreen(enemies);
@@ -82,7 +90,7 @@ public class Main {
         }
     }
     static void startBossBattle(Hero hero) throws InterruptedException {
-        Enemy boss = new Enemy("brnd");
+        Enemy boss = new Enemy("bRnd");
         // Вывод начальных данных
         UI.AssemblyFightScreen(boss);
         UI.AddHeroStatistic(hero);
@@ -108,6 +116,8 @@ public class Main {
 
             // Проверка, побеждён ли босс
             if (boss.health <= 0) {
+                hero.money += (int)((double)boss.reward * 1.5);
+                UI.AddStatsChangeParticle("hero", "Money", (int)((double)boss.reward * 1.5));
                 break;
             }
 
@@ -130,7 +140,66 @@ public class Main {
         }
     }
     static void enterInShop(Hero hero) throws InterruptedException {
+        Stats[] stats = Stats.values();
+        Weapons[] weapons = Weapons.values();
+        Random random = new Random();
 
+        ArrayList<ShopItem> items = new ArrayList<>();
+        //заполнение массива
+        for (int i = 0; i < 4; i++) {
+            int type = random.nextInt(2); //от 0 до 2
+            switch (type){
+                case 0 :{
+                    Stats stat = stats[random.nextInt(2, stats.length) - 2];
+                    int amount = random.nextInt(5, 10);
+                    int price = random.nextInt(10, 15);
+                    items.add(new StatItem(amount, price, stat));
+                    break;
+                }
+                case 1:{
+                    Weapons weapon = weapons[random.nextInt(1, weapons.length)];
+                    int price = switch (weapon){
+
+                        case RUSTY_SWORD -> {
+                            yield 25;
+                        }
+                        case HUNTING_BOW -> {
+                            yield 40;
+                        }
+                        case POISON_DAGGER -> {
+                            yield 60;
+                        }
+                        case FLAMING_GREATSWORD -> {
+                            yield 100;
+                        }
+                        case STAFF_OF_VOID -> {
+                            yield 120;
+                        }
+                        default -> 0;
+                    };
+                    price += random.nextInt(10);
+                    items.add(new WeaponItem(weapon, price));
+                }
+
+            }
+        }
+        //выбор и покупка пока есть товары
+        while(!items.isEmpty()) {
+            //показ
+            UI.AssemblyShopScreen(items);
+            UI.ShowScreen();
+
+            int index = scanner.nextInt();
+            if(index == 0) break;
+            index = Math.clamp(index, 1, items.size()) - 1;
+            //покупка
+            if (hero.money < items.get(index).getPrice()) {
+                System.out.println("Недостаточно денег!");
+                continue;
+            }
+            items.get(index).buy(hero);
+            items.remove(index);
+        }
     }
     static void enterInRest(Hero hero) throws InterruptedException {
 

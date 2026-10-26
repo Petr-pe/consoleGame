@@ -5,14 +5,14 @@ class Enemy {
 
     Enemy(String str) {
         if (str.equals("rnd")) {
-            health = (int) (Math.random() * 100);
-            health = Math.clamp(health, 30, 70);
-            damage = (int) (Math.random() * 10);
+            health = (int) (Math.random() * 15);
+            health = Math.clamp(health, 10, 15);
+            damage = (int) (Math.random() * 4) + 1;
         }
-        else if (str.equals("brnd")) {
+        else if (str.equals("bRnd")) {
             health = (int) (Math.random() * 200);
             health = Math.clamp(health, 130, 200);
-            damage = (int) (Math.random() * 20);
+            damage = (int) (Math.random() * 14) + 1;
         }
     }
 

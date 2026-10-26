@@ -4,12 +4,12 @@ enum Rooms {
     Shop("Shop"),
     Rest("Rest");
 
-    public String typeName;
+    public final String typeName;
     Rooms(String name) {typeName = name;}
 
     //даёт случайную комнату
     static Rooms getRand() {
-        Rooms rooms[] = Rooms.values();
+        Rooms[] rooms = Rooms.values();
         return rooms[(int) (Math.random() * rooms.length)];
     }
 }

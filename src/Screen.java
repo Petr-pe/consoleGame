@@ -1,7 +1,8 @@
 public class Screen {
 
 
-    private int width = 200, height = 100;
+    private final int width;
+    private final int height;
     private StringBuilder screenStrBldr;
     private final String emptyScreen;
 

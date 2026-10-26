@@ -14,8 +14,8 @@ public class UI {
 
     //методы
     //Вычисляет координаты конца объекта
-    static Point EndOfBox(Point point, String textUnit){
-        return new Point(point.x + GetTextWidth(textUnit), point.y);
+    static Point EndOfBox(Point point, String textBox){
+        return new Point(point.x + GetTextWidth(textBox), point.y);
     }
     //даёт количество символов в самой большой подстроке
     static int GetTextWidth(String s) {
@@ -40,7 +40,7 @@ public class UI {
     //собирают экран
     static void AssemblyFightScreen(ArrayList<Enemy> enemies) {
         NewFrame();
-        screen.place("Выбери индекс врага которого бить", 1,1);
+        screen.place("Выбери индекс врага, чтобы попытаться побить его", 1,1);
 
         int ind = 0;
         Point p = new Point(listPoint);
@@ -51,7 +51,7 @@ public class UI {
                     "dmg", enemy.damage)
             );
             AddUnit(new Unit("enemy" + ind, boxText, p));
-            p = EndOfBox(p, boxText + 1);
+            p = EndOfBox(p, boxText); p.x++;
             ind++;
         }
     }
@@ -67,7 +67,7 @@ public class UI {
     }
     static void AssemblyChoseScreen(Rooms[] rooms) {
         NewFrame();
-        screen.place("Выберите индекс двери в которую хотите войти (пока что работет только Enemies и Boss)", 1,1);
+        screen.place("Выбери индекс двери, в которую хочешь войти (работает Boss, Enemies, Shop)", 1,1);
 
         int ind = 0;
         Point p = new Point(listPoint);
@@ -77,11 +77,40 @@ public class UI {
                     "type", room.typeName)
             );
             AddUnit(new Unit("door" + ind, boxText, p));
-            p = EndOfBox(p, boxText + 1);
+            p = EndOfBox(p, boxText); p.x++;
             ind++;
         }
     }
-    static void AssemblyShopScreen(/*ShopItems*/){
+    static void AssemblyShopScreen(ArrayList<ShopItem> items){
+        NewFrame();
+        screen.place("Выберите индекс товара, который хочешь купить.\n" +
+                "Если не хочешь или не можешь потратиться нажми 0 и выйди с магазина", 1,1);
+
+        int ind = 1;
+        Point p = new Point(listPoint);
+        for (ShopItem item : items) {
+            String boxText = " ";
+            if(item instanceof StatItem){
+                boxText = TextTemplate.ShopStatItemBox.getUpdatedInfo(Map.of(
+                        "ind", ind,
+                        "price", item.price,
+                        "amount", ((StatItem)item).statAmount,
+                        "stat", ((StatItem) item).stat
+                ));
+            }
+            else if(item instanceof WeaponItem){
+                boxText = TextTemplate.ShopWeaponItemBox.getUpdatedInfo(Map.of(
+                        "ind", ind,
+                        "price", item.price,
+                        "weapon", ((WeaponItem) item).weapon.getName(),
+                        "minDmg", ((WeaponItem) item).weapon.minDamage,
+                        "maxDmg", ((WeaponItem) item).weapon.maxDamage
+                ));
+            }
+            AddUnit(new Unit("item" + ind, boxText, p));
+            p = EndOfBox(p, boxText); p.x++;
+            ind++;
+        }
 
     }
     static void AssemblyRestScreen(){
@@ -180,20 +209,27 @@ enum TextTemplate {
             | Crit Chance: [critch]
             | Dodge Chance: [dodgech]
             ====================="""),
-    ShopItemBox("""
-            =====================
-            | Index: [ind]
-            | Money: [money]
-            | Item type: [type]
-            =====================
-            """),
     DoorBox("""
             =====================
             | Index: [ind]
             | Room type: [type]
             =====================
             """),
-    StatsParticle("[sign][amo]");
+    StatsParticle("[sign][amo]"),
+    ShopStatItemBox("""
+            =====================
+            | Index: [ind]
+            | Price: [price]
+            | Stat: [stat]
+            | Amount: [amount]
+            ====================="""),
+    ShopWeaponItemBox("""
+            =====================
+            | Index: [ind]
+            | Price: [price]
+            | Weapon: [weapon]
+            |       [minDmg] - [maxDmg]
+            =====================""");
 
     private final String template; //шаблон
 
@@ -215,8 +251,3 @@ enum TextTemplate {
         return result;
     }
 }
-
-//строка 148 попробовать UI.GetTextWidth() строка 19
-//сделать функцию, которая будет  по label определять строку, находить её конец (или конец самой длинной строки), и вставлять туда соответствующий партикл
-//добавить комментарии к функциям
-//
