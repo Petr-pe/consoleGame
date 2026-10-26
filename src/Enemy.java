@@ -1,27 +1,33 @@
-class Enemy {
-    int health = 100;
-    int damage = 10;
-    final int reward = (health + damage * 3) / 10;
+import java.util.Random;
 
-    Enemy(String str) {
-        if (str.equals("rnd")) {
-            health = (int) (Math.random() * 15);
-            health = Math.clamp(health, 10, 15);
-            damage = (int) (Math.random() * 4) + 1;
-        }
-        else if (str.equals("bRnd")) {
-            health = (int) (Math.random() * 200);
-            health = Math.clamp(health, 130, 200);
-            damage = (int) (Math.random() * 14) + 1;
-        }
+class Enemy {
+    int health, damage, reward;
+
+    Enemy(int health, int damage) {
+        this.health = health;
+        this.damage = damage;
+        reward = (health + damage * 4) / 2;
+    }
+    static Enemy random(int minHealth, int maxHealth, int minDamage, int maxDamage){
+        Random random = new Random();
+        int hp = random.nextInt(minHealth, maxHealth);
+        int dmg = random.nextInt(minDamage, maxDamage);
+        return new Enemy(hp, dmg);
+    }
+    static Enemy random(int maxHealth, int maxDamage){
+        return random(1,maxHealth,1,maxDamage);
+    }
+    static Enemy random(){
+        return random(10,20,1,5);
+    }
+    static Enemy boss(){
+        return random(50, 70, 3, 8);
     }
 
     void hit(Hero hero) throws InterruptedException {
         hero.takeDamage(damage);
     }
-
     void takeDamage(int damage) {
         this.health -= damage;
     }
-
 }

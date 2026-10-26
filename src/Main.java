@@ -3,7 +3,9 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
+    static int waitMilliseconds = 600;
     static Scanner scanner = new Scanner(System.in);
+    static Random random = new Random();
     static void main() throws InterruptedException {
 
         Hero hero = new Hero();
@@ -37,8 +39,8 @@ public class Main {
     static void startBattle(Hero hero) throws InterruptedException {
         //создание списка до 4 врагов со случайными сататми
         ArrayList<Enemy> enemies = new ArrayList<>();
-        int count = (int)(Math.random() * 4) + 1;//+1 тк может получиться 0
-        for (int i = 0; i < count; i++) enemies.add(new Enemy("rnd"));
+        int count = random.nextInt(1, 4);
+        for (int i = 0; i < count; i++) enemies.add(Enemy.random());
 
         //вывод данных
         UI.AssemblyFightScreen(enemies);
@@ -71,7 +73,7 @@ public class Main {
             UI.AssemblyFightScreen(enemies);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(1000);
+            Thread.sleep(waitMilliseconds);
 
             //ход врагов
             for (Enemy enemy : enemies) {
@@ -85,12 +87,12 @@ public class Main {
                 UI.AssemblyFightScreen(enemies);
                 UI.AddHeroStatistic(hero);
                 UI.ShowScreen();
-                Thread.sleep(1000);
+                Thread.sleep(waitMilliseconds);
             }
         }
     }
     static void startBossBattle(Hero hero) throws InterruptedException {
-        Enemy boss = new Enemy("bRnd");
+        Enemy boss = Enemy.boss();
         // Вывод начальных данных
         UI.AssemblyFightScreen(boss);
         UI.AddHeroStatistic(hero);
@@ -112,7 +114,7 @@ public class Main {
             UI.AssemblyFightScreen(boss);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(1000);
+            Thread.sleep(waitMilliseconds);
 
             // Проверка, побеждён ли босс
             if (boss.health <= 0) {
@@ -136,19 +138,19 @@ public class Main {
             UI.AssemblyFightScreen(boss);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(1000);
+            Thread.sleep(waitMilliseconds);
         }
     }
     static void enterInShop(Hero hero) throws InterruptedException {
         Stats[] stats = Stats.values();
         Weapons[] weapons = Weapons.values();
-        Random random = new Random();
 
         ArrayList<ShopItem> items = new ArrayList<>();
         //заполнение массива
         for (int i = 0; i < 4; i++) {
             int type = random.nextInt(2); //от 0 до 2
             switch (type){
+                //если это стат
                 case 0 :{
                     Stats stat = stats[random.nextInt(2, stats.length) - 2];
                     int amount = random.nextInt(5, 10);
@@ -156,6 +158,7 @@ public class Main {
                     items.add(new StatItem(amount, price, stat));
                     break;
                 }
+                //если это оружие
                 case 1:{
                     Weapons weapon = weapons[random.nextInt(1, weapons.length)];
                     int price = switch (weapon){
@@ -187,6 +190,7 @@ public class Main {
         while(!items.isEmpty()) {
             //показ
             UI.AssemblyShopScreen(items);
+            UI.AddHeroStatistic(hero);
             UI.ShowScreen();
 
             int index = scanner.nextInt();

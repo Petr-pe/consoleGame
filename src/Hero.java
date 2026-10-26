@@ -39,5 +39,8 @@ class Hero {
         //но пока что это
         System.exit(0);
     }
+    void heal(int amount){
+        health = Math.min(health + amount, maxHealth);
+    }
 
 }
