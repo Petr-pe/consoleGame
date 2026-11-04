@@ -4,12 +4,10 @@ public enum Stats {
     CritChance("Crit Chance"),
     CritMultiply("Crit Multiply"),
     DodgeChance("Dodge Chance"),
-    MaxHealth("Max Health"),
-    MinDamage("Min Damage"),
-    MaxDamage("Max Damage");
-    private final String string;
+    MaxHealth("Max Health");
+    public final String name;
     Stats(String str){
-        string = str;
+        name = str;
     }
 }
 

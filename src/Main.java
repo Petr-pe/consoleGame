@@ -58,7 +58,7 @@ public class Main {
             //ход героя
             hero.hit(damageableEnemy);
             //добавление партикла
-            UI.AddStatsChangeParticle("enemy" + index, "HP",-(lastEnemyHp - damageableEnemy.health));
+            UI.AddStatsChangeParticle("enemy" + index, Stats.Health.name,-(lastEnemyHp - damageableEnemy.health));
 
             //удаление врага если умер и выдавание денег
             if(damageableEnemy.health <= 0){
@@ -82,7 +82,7 @@ public class Main {
                 //ход врага
                 enemy.hit(hero);
                 //добавление партикла
-                UI.AddStatsChangeParticle("hero", "HP", -(lastHeroHp - hero.health));
+                UI.AddStatsChangeParticle("hero", Stats.Health.name, -(lastHeroHp - hero.health));
                 //вывод данных
                 UI.AssemblyFightScreen(enemies);
                 UI.AddHeroStatistic(hero);
@@ -107,7 +107,7 @@ public class Main {
             // Добавление партикла изменения HP босса
             UI.AddStatsChangeParticle(
                     "enemy0",
-                    "HP",
+                    Stats.Health.name,
                     -(lastBossHp - boss.health)
             );
             // Вывод данных
@@ -130,7 +130,7 @@ public class Main {
             // Добавление партикла изменения HP героя
             UI.AddStatsChangeParticle(
                     "hero",
-                    "HP",
+                    Stats.Health.name,
                     -(lastHeroHp - hero.health)
             );
 
@@ -141,7 +141,7 @@ public class Main {
             Thread.sleep(waitMilliseconds);
         }
     }
-    static void enterInShop(Hero hero) throws InterruptedException {
+    static void enterInShop(Hero hero) {
         Stats[] stats = Stats.values();
         Weapons[] weapons = Weapons.values();
 
@@ -152,7 +152,7 @@ public class Main {
             switch (type){
                 //если это стат
                 case 0 :{
-                    Stats stat = stats[random.nextInt(2, stats.length) - 2];
+                    Stats stat = stats[random.nextInt(stats.length)];
                     int amount = random.nextInt(5, 10);
                     int price = random.nextInt(10, 15);
                     items.add(new StatItem(amount, price, stat));
@@ -197,12 +197,13 @@ public class Main {
             if(index == 0) break;
             index = Math.clamp(index, 1, items.size()) - 1;
             //покупка
-            if (hero.money < items.get(index).getPrice()) {
-                System.out.println("Недостаточно денег!");
-                continue;
+            if (hero.money >= items.get(index).getPrice()) {
+                UI.AddStatsChangeParticle( "hero", "Money", items.get(index).getPrice() * -1);
+
+                items.get(index).buy(hero);
+                items.remove(index);
             }
-            items.get(index).buy(hero);
-            items.remove(index);
+
         }
     }
     static void enterInRest(Hero hero) throws InterruptedException {

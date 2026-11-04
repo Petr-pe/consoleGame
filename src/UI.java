@@ -197,13 +197,13 @@ enum TextTemplate {
     EnemyBox("""
             =====================
             | Index: [ind]
-            | HP: [hp]
+            | Health: [hp]
             | Damage: [dmg]
             ====================="""),
     HeroBox("""
             =====================
             | Money: [money]
-            | HP: [hp] - [mhp]
+            | Health: [hp] - [mhp]
             | Damage: [dmg]
             | Weapon: [weapon]
             | Crit Chance: [critch]
@@ -232,10 +232,6 @@ enum TextTemplate {
             =====================""");
 
     private final String template; //шаблон
-
-    String getTemplate(){
-        return template;
-    }
 
     //конструктор
     TextTemplate(String text){
