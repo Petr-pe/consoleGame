@@ -8,6 +8,8 @@ class Hero {
     int critMultiply = 2;
     Weapons weapon = Weapons.NONE;
 
+    final int maxStatChance = 50;
+
     void hit(Enemy enemy) {
         int damage = basicDamage + weapon.getDamage();
         damage = (Math.random() < (double) this.critChance / 100) ? damage * critMultiply : damage;

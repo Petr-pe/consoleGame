@@ -67,7 +67,7 @@ public class UI {
     }
     static void AssemblyChoseScreen(Rooms[] rooms) {
         NewFrame();
-        screen.place("Выбери индекс двери, в которую хочешь войти (работает Boss, Enemies, Shop)", 1,1);
+        screen.place("Выбери индекс двери, в которую хочешь войти", 1,1);
 
         int ind = 0;
         Point p = new Point(listPoint);
@@ -111,31 +111,51 @@ public class UI {
             p = EndOfBox(p, boxText); p.x++;
             ind++;
         }
-
     }
     static void AssemblyRestScreen(){
 
     }
 
     //формирует и добавляет партиклы в список
-    static private void AddStatParticleToList(int val, Point pos){
-        String text = TextTemplate.StatsParticle.getUpdatedInfo(Map.of(
-                "sign", val > 0 ? '+' : '-',
-                "amo", Math.abs(val)
-        ));
-        particles.add(new Particle(text, pos));
+    static private void AddStatParticleToList(String string, Point pos){
+        particles.add(new Particle(string, pos));
     }
-    //высчитывает куда ставить партикл
+    static private void AddStatParticleToList(int val, Point pos){
+        particles.add(new Particle((val > 0 ? "+" : "-") + Math.abs(val), pos));
+    }
+    //формирует и устанавливает партикл на позицию
     static void AddStatsChangeParticle(String unitName, String stat, int change, Point offset) {
         Unit unit = FindUnit(unitName); if(unit == null) return;
-        Point particlePoint = unit.lineEnd(stat).plus(offset);
-        AddStatParticleToList(change, particlePoint);
+        Point particlePoint = null; Stats[] stats = Stats.values(); boolean isFound = false;
+        for(Stats stt : stats) {
+            try {
+                //пробовать найти точку по имени статистики
+                particlePoint = unit.lineEnd(stat).plus(offset);
+
+                isFound = true;
+                break;
+            } catch (NullPointerException e) {
+                if (!stat.equals(stt.name) && (stat.contains(stt.name) || stt.name.contains(stat))) {
+                    stat = stt.name;
+                }
+            }
+        }
+        if(isFound)
+            AddStatParticleToList(change, particlePoint);
     }
     static void AddStatsChangeParticle(String unitName, String stat, int change) {
         AddStatsChangeParticle(unitName, stat, change, new Point(2,0));
     }
+    static void AddStatsChangeParticle(String unitName, String stat, String particleText, Point offset) {
+        Unit unit = FindUnit(unitName); if(unit == null) return;
+        Point particlePoint = unit.lineEnd(stat).plus(offset);
+        AddStatParticleToList(particleText, particlePoint);
+    }
+    static void AddStatsChangeParticle(String unitName, String stat, String particleText) {
+        AddStatsChangeParticle(unitName, stat, particleText, new Point(2,0));
+    }
 
-        //выводит статистику героя на экран
+    //выводит статистику героя на экран
     static void AddHeroStatistic(Hero hero){
         String stats = TextTemplate.HeroBox.getUpdatedInfo(Map.of(
                 "money", hero.money,
@@ -144,7 +164,8 @@ public class UI {
                 "dmg", hero.basicDamage,
                 "weapon", (hero.weapon.getName() + ' ' + hero.weapon.minDamage + '-' + hero.weapon.maxDamage),
                 "critch", hero.critChance,
-                "dodgech", hero.dodgeChance)
+                "dodgech", hero.dodgeChance,
+                "critmp", hero.critMultiply)
         );
         AddUnit(new Unit("hero", stats, heroStats));
     }
@@ -186,7 +207,7 @@ class Unit{
     Point lineEnd(String label){
         String[] lines = content.split("\n"); //делит строку на множество строк, где есть этот вот аргумент
         for (int i = 0; i < lines.length; i++)
-            if(lines[i].contains(label))
+            if(lines[i].toLowerCase().contains(label.toLowerCase()))
                 return new Point(position.x + lines[i].length(), position.y + i); // по x конец строки, по y номер строки
         return null;
     }
@@ -208,6 +229,7 @@ enum TextTemplate {
             | Weapon: [weapon]
             | Crit Chance: [critch]
             | Dodge Chance: [dodgech]
+            | Crit Multiply: [critmp]
             ====================="""),
     DoorBox("""
             =====================
@@ -215,7 +237,6 @@ enum TextTemplate {
             | Room type: [type]
             =====================
             """),
-    StatsParticle("[sign][amo]"),
     ShopStatItemBox("""
             =====================
             | Index: [ind]

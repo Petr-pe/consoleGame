@@ -2,8 +2,10 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
+//java -cp .\out\production\project\ Main
+
 public class Main {
-    static int waitMilliseconds = 600;
+    static int durationTime = 600;
     static Scanner scanner = new Scanner(System.in);
     static Random random = new Random();
     static void main() throws InterruptedException {
@@ -73,7 +75,7 @@ public class Main {
             UI.AssemblyFightScreen(enemies);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(waitMilliseconds);
+            Thread.sleep(durationTime);
 
             //ход врагов
             for (Enemy enemy : enemies) {
@@ -87,7 +89,7 @@ public class Main {
                 UI.AssemblyFightScreen(enemies);
                 UI.AddHeroStatistic(hero);
                 UI.ShowScreen();
-                Thread.sleep(waitMilliseconds);
+                Thread.sleep(durationTime);
             }
         }
     }
@@ -114,7 +116,7 @@ public class Main {
             UI.AssemblyFightScreen(boss);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(waitMilliseconds);
+            Thread.sleep(durationTime);
 
             // Проверка, побеждён ли босс
             if (boss.health <= 0) {
@@ -138,10 +140,10 @@ public class Main {
             UI.AssemblyFightScreen(boss);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-            Thread.sleep(waitMilliseconds);
+            Thread.sleep(durationTime);
         }
     }
-    static void enterInShop(Hero hero) {
+    static void enterInShop(Hero hero) throws InterruptedException {
         Stats[] stats = Stats.values();
         Weapons[] weapons = Weapons.values();
 
@@ -153,8 +155,32 @@ public class Main {
                 //если это стат
                 case 0 :{
                     Stats stat = stats[random.nextInt(stats.length)];
-                    int amount = random.nextInt(5, 10);
-                    int price = random.nextInt(10, 15);
+
+                    int price, amount;
+                    //распределение баланса магазина
+                    switch (stat){
+                        case Health -> {
+                            amount = (int)((double)hero.maxHealth * 0.2);
+                            price = amount;
+                        }
+                        case MaxHealth -> {
+                            amount = random.nextInt(10,21);
+                            price = (int)((double)amount * 0.5 + 10);
+                        }
+                        case Damage -> {
+                            amount = random.nextInt(1, 6);
+                            price = amount * 15;
+                        }
+                        case CritChance, DodgeChance, CritMultiply ->{
+                            amount = 1;
+                            price = 20;
+                        }
+                        default -> {
+                            amount = 0;
+                            price = 0;
+                        }
+                    };
+                    //добавление стата
                     items.add(new StatItem(amount, price, stat));
                     break;
                 }
@@ -162,7 +188,6 @@ public class Main {
                 case 1:{
                     Weapons weapon = weapons[random.nextInt(1, weapons.length)];
                     int price = switch (weapon){
-
                         case RUSTY_SWORD -> {
                             yield 25;
                         }
@@ -183,7 +208,6 @@ public class Main {
                     price += random.nextInt(10);
                     items.add(new WeaponItem(weapon, price));
                 }
-
             }
         }
         //выбор и покупка пока есть товары
@@ -196,20 +220,67 @@ public class Main {
             int index = scanner.nextInt();
             if(index == 0) break;
             index = Math.clamp(index, 1, items.size()) - 1;
+            ShopItem item = items.get(index);
             //покупка
             if (hero.money >= items.get(index).getPrice()) {
+                //вывод партиклов типа о покупке
+                if(item instanceof WeaponItem)
+                    UI.AddStatsChangeParticle("hero", "Weapon", ((WeaponItem) item).weapon.getName());
+                else if(item instanceof StatItem)
+                    UI.AddStatsChangeParticle("hero", ((StatItem) item).stat.name, ((StatItem) item).statAmount);
+
                 UI.AddStatsChangeParticle( "hero", "Money", items.get(index).getPrice() * -1);
 
                 items.get(index).buy(hero);
                 items.remove(index);
             }
+            else{
+                UI.screen.place("Мало Денег", UI.screen.getWidth()/2,UI.screen.getHeight()/2);
+                Thread.sleep(durationTime);
+            }
 
         }
     }
     static void enterInRest(Hero hero) throws InterruptedException {
+        boolean askAgain = true;
+        do {
+            UI.screen.clear();
+            UI.AddHeroStatistic(hero);
+            UI.screen.place("сколько здоровья хочешь излечить? (цена = здоровье * 0.25)", 3, 3);
+            UI.ShowScreen();
 
+            String str = scanner.next();
+            int amount = switch (str.toLowerCase()) {
+                case "max", "full", "all" -> {
+                    yield hero.maxHealth - hero.health;
+                }
+                default -> {
+                    yield Math.min(Integer.parseInt(str), hero.maxHealth - hero.health);
+                }
+            };
+            int price = (int) ((double) amount * 0.25);
+
+            UI.screen.clear();
+            UI.AddHeroStatistic(hero);
+            UI.screen.place("Хочешь излечить " + amount + " хп за " + price + " денег? (y/n)", 3, 3);
+            UI.ShowScreen();
+            str = scanner.next();
+            switch (str.toLowerCase()) {
+                case "y", "ye", "yes" -> {
+                    if(hero.money >= price){
+                        hero.heal(amount);
+                        hero.money -= price;
+                        UI.AddStatsChangeParticle("hero", Stats.Health.name, "n");
+                        UI.AddStatsChangeParticle("hero", "Money", "n");
+                        askAgain = false;
+                    }
+                    else {
+                        UI.screen.place("Мало денег", 3, 3);
+                        Thread.sleep(durationTime);
+                    }
+                }
+            }
+        }while(askAgain);
     }
-
-
 
 }
