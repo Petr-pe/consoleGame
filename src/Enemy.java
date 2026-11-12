@@ -24,10 +24,11 @@ class Enemy {
         return random(50, 70, 3, 8);
     }
 
-    void hit(Hero hero) throws InterruptedException {
-        hero.takeDamage(damage);
+    HitResult hit(Hero hero) {
+        return hero.takeDamage(damage);
     }
-    void takeDamage(int damage) {
-        this.health -= damage;
+    HitResult takeDamage(int damage) {
+        health -= damage;
+        return new HitResult(damage, false, false);
     }
 }

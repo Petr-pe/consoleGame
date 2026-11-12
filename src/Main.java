@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -27,7 +28,7 @@ public class Main {
             UI.ShowScreen();
 
             //выбор комнаты
-            int chose = Math.clamp(scanner.nextInt(), 1, choosingSize) - 1;
+            int chose = safeReadInt(1, choosingSize) - 1;
             switch (rooms[chose]){
                 case Enemies -> startBattle(hero);
                 case Boss -> startBossBattle(hero);
@@ -52,15 +53,13 @@ public class Main {
         //цикл боя
         while(!enemies.isEmpty()){
             //запрос на индекс врага
-            int index = Math.clamp(scanner.nextInt(), 1, enemies.size()) - 1;
+            int index = safeReadInt(1, enemies.size()) - 1;
             Enemy damageableEnemy = enemies.get(index);
 
-            //сохранение значения хп перед получением урона
-            int lastEnemyHp = damageableEnemy.health;
             //ход героя
-            hero.hit(damageableEnemy);
+            HitResult re = hero.hit(damageableEnemy);
             //добавление партикла
-            UI.AddStatsChangeParticle("enemy" + index, Stats.Health.name,-(lastEnemyHp - damageableEnemy.health));
+            UI.AddStatsChangeParticle("enemy" + index, Stats.Health.name, (re.crit() ? "crit:" : "") + re.damage());
 
             //удаление врага если умер и выдавание денег
             if(damageableEnemy.health <= 0){
@@ -79,12 +78,10 @@ public class Main {
 
             //ход врагов
             for (Enemy enemy : enemies) {
-                //сохранение хп героя перед получением урона
-                int lastHeroHp = hero.health;
                 //ход врага
-                enemy.hit(hero);
+                HitResult rh = enemy.hit(hero);
                 //добавление партикла
-                UI.AddStatsChangeParticle("hero", Stats.Health.name, -(lastHeroHp - hero.health));
+                UI.AddStatsChangeParticle("hero", Stats.Health.name, rh.dodged() ? "Dodged" : String.valueOf(re.damage()));
                 //вывод данных
                 UI.AssemblyFightScreen(enemies);
                 UI.AddHeroStatistic(hero);
@@ -102,38 +99,34 @@ public class Main {
 
         // Цикл боя
         while (boss.health > 0) {
-            // Сохранение значения HP босса перед получением урона
-            int lastBossHp = boss.health;
             // Ход героя
-            hero.hit(boss);
+            HitResult rb = hero.hit(boss);
             // Добавление партикла изменения HP босса
             UI.AddStatsChangeParticle(
                     "enemy0",
                     Stats.Health.name,
-                    -(lastBossHp - boss.health)
+                    (rb.crit() ? "crit:" : "") + rb.damage()
             );
-            // Вывод данных
-            UI.AssemblyFightScreen(boss);
-            UI.AddHeroStatistic(hero);
-            UI.ShowScreen();
-            Thread.sleep(durationTime);
-
             // Проверка, побеждён ли босс
             if (boss.health <= 0) {
                 hero.money += (int)((double)boss.reward * 1.5);
                 UI.AddStatsChangeParticle("hero", "Money", (int)((double)boss.reward * 1.5));
                 break;
             }
+            // Вывод данных
+            UI.AssemblyFightScreen(boss);
+            UI.AddHeroStatistic(hero);
+            UI.ShowScreen();
+            Thread.sleep(durationTime);
 
-            // Сохранение значения HP героя перед получением урона
-            int lastHeroHp = hero.health;
+
             // Ход босса
-            boss.hit(hero);
+            HitResult rh = boss.hit(hero);
             // Добавление партикла изменения HP героя
             UI.AddStatsChangeParticle(
                     "hero",
                     Stats.Health.name,
-                    -(lastHeroHp - hero.health)
+                    rh.dodged() ? "Dodged" : String.valueOf(rh.damage())
             );
 
             // Вывод данных
@@ -216,10 +209,9 @@ public class Main {
             UI.AssemblyShopScreen(items);
             UI.AddHeroStatistic(hero);
             UI.ShowScreen();
-
-            int index = scanner.nextInt();
-            if(index == 0) break;
-            index = Math.clamp(index, 1, items.size()) - 1;
+            //запрос на ввод
+            int index = safeReadInt(0, items.size()) - 1;
+            if(index == -1) break;
             ShopItem item = items.get(index);
             //покупка
             if (hero.money >= items.get(index).getPrice()) {
@@ -281,6 +273,23 @@ public class Main {
                 }
             }
         }while(askAgain);
+    }
+
+    static int safeReadInt(int min, int max){
+        while(true){
+            try{
+                int value = scanner.nextInt();
+                if (value >= min && value <= max)
+                    return value;
+                else
+                    UI.screen.place("Введи число из диапазона",
+                            UI.screen.getWidth() / 2, UI.screen.getHeight() / 2);
+            }
+            catch (InputMismatchException e){
+                UI.screen.place("Введи хотя-бы целое число",
+                        UI.screen.getWidth() / 2, UI.screen.getHeight() / 2);
+            }
+        }
     }
 
 }

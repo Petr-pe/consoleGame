@@ -10,20 +10,19 @@ class Hero {
 
     final int maxStatChance = 50;
 
-    void hit(Enemy enemy) {
+    HitResult hit(Enemy enemy) {
         int damage = basicDamage + weapon.getDamage();
-        damage = (Math.random() < (double) this.critChance / 100) ? damage * critMultiply : damage;
-        enemy.takeDamage(damage);
+        boolean crit = Math.random() < (double) this.critChance / 100;
+        damage = crit ? damage * critMultiply : damage;
+        HitResult res = enemy.takeDamage(damage);
+        return new HitResult(res.damage(), res.dodged(), crit);
     }
 
-    void takeDamage(int damage) throws InterruptedException {
+    HitResult takeDamage(int damage) {
         if (Math.random() < (double) this.dodgeChance / 100)
-            dodge();
-        else
-            health -= damage;
-
-        if (health <= 0)
-            onDeath();
+            return new HitResult(0, true, false);
+        health -= damage;
+        return new HitResult(damage, false, false);
     }
 
     void dodge() {
